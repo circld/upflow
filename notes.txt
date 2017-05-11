@@ -1,0 +1,1 @@
+check stayfocusd manifest for clues about extension organization
