@@ -5,7 +5,7 @@ var blacklist = [
   "soccer"
 ];
 
-function is_blacklisted_factory(blacklist) {
+function isBlacklistedFactory(blacklist) {
 
   return function(url) {
     for (var i = 0; i < blacklist.length; i++) {
@@ -17,23 +17,23 @@ function is_blacklisted_factory(blacklist) {
   }
 }
 
-var is_blacklisted = is_blacklisted_factory(blacklist);
+var isBlacklisted = isBlacklistedFactory(blacklist);
 
 // TODO: send blacklisted URL along to provide link on blocked page
-function validate_url(request, sender, sendResponse) {
+function validateUrl(request, sender, sendResponse) {
   var url = request.url;
-  var response_action = is_blacklisted(url) ? 'redirect' : 'noop';
+  var responseAction = isBlacklisted(url) ? 'redirect' : 'noop';
   sendResponse({
-    action: response_action,
-    current_url: url,
-    redirect_url: chrome.extension.getURL('keep-growing.html')
+    action: responseAction,
+    currenturl: url,
+    redirectUrl: chrome.extension.getURL('keep-growing.html')
   });
 }
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    if (request.action === 'url_load') {
-      validate_url(request, sender, sendResponse);
+    if (request.action === 'urlLoad') {
+      validateUrl(request, sender, sendResponse);
     }
   }
 );
