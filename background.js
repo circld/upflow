@@ -1,4 +1,3 @@
-// TODO: `redirected` implementation is wrong; how to get `keep-growing.html` to
 // report state
 // hardcoded blacklist
 var blacklist = [
@@ -19,15 +18,12 @@ function isBlacklistedFactory(blacklist) {
   }
 }
 
-var upTimeSet = 10;
-var downTimeSet = 5;
-// var upTimeSet = 40 * 60;
-// var downTimeSet = 20 * 60;
+var upTimeSet = 40 * 60;
+var downTimeSet = 20 * 60;
 var totalTime = upTimeSet + downTimeSet;
 var downTime = downTimeSet;
 var periodSeconds = new Array(totalTime).fill(0);
 var isBlacklisted = isBlacklistedFactory(blacklist);
-var redirected = false;
 
 function sumArray(arr) {
   var total = 0;
@@ -50,7 +46,6 @@ function sendActiveTabMessage(message) {
 function validateUrl(request, sender, sendResponse) {
   var url = request.url;
   var responseAction = isBlacklisted(url) && isDownTime() ? 'redirect' : 'noop';
-  redirected = responseAction === 'redirect' ? true : false;
   sendActiveTabMessage({
     action: responseAction,
     currentUrl: url,
@@ -60,28 +55,20 @@ function validateUrl(request, sender, sendResponse) {
 
 // check active tab URL every second
 function checkUrl() {
-  console.log(downTime);
-  if ( redirected ) {
-    periodSeconds.push(0);
-    downTime += periodSeconds.shift();
-    return;
-  }
   sendActiveTabMessage({action: "urlCheckAsk", time: downTime, period: periodSeconds});
 }
 setInterval(checkUrl, 1000);
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-    if ( request.action === "urlLoad" ) {
-      validateUrl(request, sender, sendResponse);
-    } else if ( request.action === "urlCheckReply" ) {
+    if ( request.action === "urlCheckReply" ) {
       let newest = isBlacklisted(request.url) ? 1 : 0;
       let oldest = periodSeconds.shift();
       periodSeconds.push(newest);
 
       downTime -= downTime > 0 ? newest : 0;
       downTime += downTime < downTimeSet ? oldest : 0;
-      validateUrl(request, sender, sendResponse);
     }
+    validateUrl(request, sender, sendResponse);
   }
 );
