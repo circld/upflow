@@ -2,6 +2,11 @@
   "manifest_version": 2,
   "name": "upflow",
   "version": "0.1",
+  "icons": {
+    "16": "assets/sprout_16.png",
+    "32": "assets/sprout_32.png",
+    "128": "assets/sprout_128.png"
+  },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
