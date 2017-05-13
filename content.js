@@ -8,8 +8,9 @@ chrome.runtime.sendMessage({action: "urlLoad", url: window.location.href});
 chrome.runtime.onMessage.addListener(
 
   function(request, sender, sendResponse) {
-    if ( request.action === "redirect" ) {
-      window.location.href = request.redirectUrl;
+    var currentUrl = window.location.href;
+    if ( request.action === "redirect" && request.currentUrl === currentUrl) {
+       window.location.href = request.redirectUrl;
     } else if ( request.action === "urlCheckAsk" ) {
       console.log(request);
       chrome.runtime.sendMessage(

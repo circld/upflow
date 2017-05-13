@@ -41,12 +41,9 @@ function isDownTime() {
   return downTime <= 0;
 }
 
-// TODO: visibility: handle multiple windows (!= lastfocusedwindow)
-// TODO: bug: if on blacklisted site & open new window, downTime stays same forever
-function sendActivetTabMessage(message) {
-  chrome.tabs.query({active: true, lastFocusedWindow: true}, function(tabs) {
-    var activeTab = tabs[0];
-    chrome.tabs.sendMessage(activeTab.id, message);
+function sendActiveTabMessage(message) {
+  chrome.tabs.query({active: true}, function(tabs) {
+    tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, message));
   });
 }
 
@@ -54,9 +51,9 @@ function validateUrl(request, sender, sendResponse) {
   var url = request.url;
   var responseAction = isBlacklisted(url) && isDownTime() ? 'redirect' : 'noop';
   redirected = responseAction === 'redirect' ? true : false;
-  sendActivetTabMessage({
+  sendActiveTabMessage({
     action: responseAction,
-    currenturl: url,
+    currentUrl: url,
     redirectUrl: chrome.extension.getURL('keep-growing.html')
   });
 }
@@ -69,7 +66,7 @@ function checkUrl() {
     downTime += periodSeconds.shift();
     return;
   }
-  sendActivetTabMessage({action: "urlCheckAsk", time: downTime, period: periodSeconds});
+  sendActiveTabMessage({action: "urlCheckAsk", time: downTime, period: periodSeconds});
 }
 setInterval(checkUrl, 1000);
 
