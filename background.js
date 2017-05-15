@@ -90,5 +90,15 @@ function toHHMMSS(seconds) {
 function getTimeData() {
   let downTimeString = toHHMMSS(downTime);
   let totalTimeString = toHHMMSS(totalTime);
-  return {'downTime': downTimeString, 'totalTime': totalTimeString};
+  return {
+    'downTime': downTime,
+    'downTimeSet': downTimeSet,
+    'totalTime': totalTime,
+    'downTimeString': downTimeString,
+    'totalTimeString': totalTimeString
+  };
+}
+
+function getPeriodSeconds() {
+  return periodSeconds;
 }
