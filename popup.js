@@ -17,12 +17,15 @@ for (var i = 0; i < trailing.length; i++) {
 // chart
 // https://bl.ocks.org/mbostock/3883245
 // http://jsfiddle.net/cf7a4afv/
-var height = 100;
-var width = 300;
+// TODO: axes
+var margin = {top: 30, right: 10, bottom: 10, left: 10};
+var height = 100 - margin.top - margin.bottom;
+var width = 250;
 var svg = d3.select("#timeSeries").append("svg")
   .attr("width", width)
   .attr("height", height);
-var g = svg.append("g");
+var g = svg.append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 var x = d3.scaleLinear()
   .domain(d3.extent(timeSeries, function(d) { return d.sec; }))
   .rangeRound([0, width]);
@@ -35,4 +38,5 @@ var lineChart = d3.line()
 
 g.append("path").attr("d", lineChart(timeSeries))
   .attr("fill", "none")
-  .attr("stroke", "#ff0000");
+  .attr("stroke", "#b5f26a")
+  .attr("stroke-width", 2);
