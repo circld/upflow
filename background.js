@@ -1,4 +1,14 @@
+// TODO: access tab url directly (https://developer.chrome.com/extensions/tabs#type-Tab)
+// TODO: use _ library for times/fill
+// TODO: pull all functions out into separate file & import here
+// before making logic into an immediately invoked function
+// TODO: eslint
+// TODO: research sparse array constructs? e.g., [[1, 25], [0, 3221], [1, 354]]
 // report state
+// TODO: refactor tick behavior to event-driven behavior
+// refactor to leverage this event to trigger checking of active tab urls for all windows
+// chrome.tabs.onActivated.addListener(function() { console.log("change detected"); })
+
 // hardcoded blacklist
 var blacklist = [
   "manga",
@@ -10,7 +20,7 @@ var blacklist = [
 function isBlacklistedFactory(blacklist) {
 
   return function(url) {
-    for (var i = 0; i < blacklist.length; i++) {
+    for (let i = 0, length = blacklist.length; i < length; i++) {
       if ( url.includes(blacklist[i]) ) {
         return true;
       }
@@ -19,20 +29,16 @@ function isBlacklistedFactory(blacklist) {
   }
 }
 
-var upTimeSet = 40 * 60;
-var downTimeSet = 20 * 60;
+// const for unchanging variables
+// let instead of var (not hoisted)
+var upTimeSet = 5;
+var downTimeSet = 5;
+// var upTimeSet = 40 * 60;
+// var downTimeSet = 20 * 60;
 var totalTime = upTimeSet + downTimeSet;
 var downTime = downTimeSet;
-var periodSeconds = new Array(totalTime).fill(0);
+var periodSeconds = new Array(totalTime).fill(0);  // literal notation?
 var isBlacklisted = isBlacklistedFactory(blacklist);
-
-function sumArray(arr) {
-  var total = 0;
-  for (var i = 0; i < arr.length; i++) {
-    total += arr[i];
-  }
-  return total;
-}
 
 function isDownTime() {
   return downTime <= 0;
@@ -60,6 +66,7 @@ function checkUrl() {
 }
 setInterval(checkUrl, 1000);
 
+// TODO: pull callback out into functions defined in global scope
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if ( request.action === "urlCheckReply" ) {
@@ -75,6 +82,8 @@ chrome.runtime.onMessage.addListener(
 );
 
 // http://stackoverflow.com/questions/6312993/javascript-seconds-to-time-string-with-format-hhmmss
+// JS datetime: check to see how intervals are represented/string formatting
+// moment.js
 function toHHMMSS(seconds) {
     var sec_num = parseInt(seconds, 10); // don't forget the second param
     var hours   = Math.floor(sec_num / 3600);
@@ -99,6 +108,7 @@ function getTimeData() {
   };
 }
 
+// should probably clone array (passed by ref)
 function getPeriodSeconds() {
   return periodSeconds;
 }
