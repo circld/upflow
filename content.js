@@ -11,11 +11,6 @@ chrome.runtime.onMessage.addListener(
     var currentUrl = window.location.href;
     if ( request.action === "redirect" && request.currentUrl === currentUrl) {
       window.location.href = request.redirectUrl;
-    } else if ( request.action === "urlCheckAsk" ) {
-      console.log(request);
-      chrome.runtime.sendMessage(
-          {action: "urlCheckReply", url: window.location.href}
-      );
     }
   }
 
