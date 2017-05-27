@@ -3,6 +3,7 @@
 <html>
   <header>
     <script src="d3.min.js"></script>
+<!-- pull CSS into separate file -->
     <style>
       #timeInfo {
         /* avoid an excessively wide status text */
@@ -20,6 +21,10 @@
         height: 100%;
         display: block;
         margin: auto;
+      }
+      .line {
+        fill: none;
+        stroke: url(#line-gradient);
       }
     </style>
   </header>

@@ -1,11 +1,14 @@
 // DONE: access tab url directly (https://developer.chrome.com/extensions/tabs#type-Tab)
 // DONE: refactor tick behavior to event-driven behavior
 // TODO: add tests
+// chai, mocha, sinon-chrome (https://github.com/acvetkov/sinon-chrome)
 // TODO: use _ library for times/fill
 // TODO: pull all functions out into separate file & import here
 // before making logic into an immediately invoked function
 // TODO: eslint
 // TODO: research sparse array constructs? e.g., [[1, 25], [0, 3221], [1, 354]]
+// TODO: detect sleep? update cooldown if big change in clock time
+// https://developer.chrome.com/apps/idle
 
 // hardcoded blacklist
 var blacklist = [
@@ -28,8 +31,8 @@ function isBlacklistedFactory(blacklist) {
 }
 
 // TODO: const for unchanging variables (what about changes in options? will that restart background.js?)
-// const upTimeSet = 5;
-// const downTimeSet = 5;
+// const upTimeSet = 30;
+// const downTimeSet = 20;
 const upTimeSet = 40 * 60;
 const downTimeSet = 20 * 60;
 const totalTime = upTimeSet + downTimeSet;
