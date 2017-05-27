@@ -1,7 +1,6 @@
 // DONE: access tab url directly (https://developer.chrome.com/extensions/tabs#type-Tab)
-// TODO: refactor tick behavior to event-driven behavior
-// refactor to leverage this event to trigger checking of active tab urls for all windows
-// chrome.tabs.onActivated.addListener(function() { console.log("change detected"); })
+// DONE: refactor tick behavior to event-driven behavior
+// TODO: add tests
 // TODO: use _ library for times/fill
 // TODO: pull all functions out into separate file & import here
 // before making logic into an immediately invoked function
@@ -28,27 +27,19 @@ function isBlacklistedFactory(blacklist) {
   }
 }
 
-// const for unchanging variables
-// let instead of var (not hoisted)
-var upTimeSet = 5;
-var downTimeSet = 5;
-// var upTimeSet = 40 * 60;
-// var downTimeSet = 20 * 60;
-var totalTime = upTimeSet + downTimeSet;
-var downTime = downTimeSet;
-var periodSeconds = new Array(totalTime).fill(0);  // literal notation?
-var redirectPage = chrome.extension.getURL('keep-growing.html')
-var isBlacklisted = isBlacklistedFactory(blacklist);
-
-function isDownTime() {
-  return downTime <= 0;
-}
-
-function sendActiveTabMessage(message) {
-  chrome.tabs.query({active: true}, function(tabs) {
-    tabs.forEach(tab => chrome.tabs.sendMessage(tab.id, message));
-  });
-}
+// TODO: const for unchanging variables (what about changes in options? will that restart background.js?)
+// const upTimeSet = 5;
+// const downTimeSet = 5;
+const upTimeSet = 40 * 60;
+const downTimeSet = 20 * 60;
+const totalTime = upTimeSet + downTimeSet;
+let downTime = downTimeSet;
+let periodSeconds = new Array(totalTime).fill(0);  // literal notation?
+let currentTabs;
+let downTabs;
+let blacklistedInTabs = false;
+let redirectPage = chrome.extension.getURL('keep-growing.html')
+let isBlacklisted = isBlacklistedFactory(blacklist);
 
 function redirectTabs(tabs) {
   tabs.forEach(tab => chrome.tabs.sendMessage(tab.id,
@@ -56,57 +47,32 @@ function redirectTabs(tabs) {
   ));
 }
 
-function updateState(tabs) {
-  let newest = 0;
-  let downTabs = [];
-  for (let i = 0, len = tabs.length; i < len; i++) {
-    if ( isBlacklisted(tabs[i].url) ) {
-      newest = 1;
-      downTabs.push(tabs[i]);
-    }
-  }
+function calcDownTime() {
+  let newest = blacklistedInTabs ? 1 : 0;
   let oldest = periodSeconds.shift();
   periodSeconds.push(newest);
 
+  // review this logic...not completely comfortable with it...
   downTime -= downTime > 0 ? newest : 0;
   downTime === 0 ? redirectTabs(downTabs) : 'noop';
   downTime += downTime < downTimeSet ? oldest : 0;
 }
 
-function checkActiveTabUrl() {
-  chrome.tabs.query({active: true}, updateState);
-}
+function updateState(activeInfo) {
+  chrome.tabs.query({active: true}, function(tabs) {
+    currentTabs = tabs;
+    downTabs = [];
+    for (let i = 0, len = currentTabs.length; i < len; i++) {
+      if ( isBlacklisted(currentTabs[i].url) ) {
+        downTabs.push(currentTabs[i]);
+      }
+    }
 
-function validateUrl(request, sender, sendResponse) {
-  var url = request.url;
-  var responseAction = isBlacklisted(url) && isDownTime() ? 'redirect' : 'noop';
-  sendActiveTabMessage({
-    action: responseAction,
-    currentUrl: url,
-    redirectUrl: chrome.extension.getURL('keep-growing.html')
+    blacklistedInTabs = downTabs.length > 0 ? true : false;
   });
 }
 
-// check active tab URL every second
-function checkUrl() {
-  sendActiveTabMessage({action: "urlCheckAsk", time: downTime, period: periodSeconds});
-}
-setInterval(checkActiveTabUrl, 1000);
-
-// TODO: pull callback out into functions defined in global scope
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    if ( request.action === "urlCheckReply" ) {
-      let newest = isBlacklisted(request.url) ? 1 : 0;
-      let oldest = periodSeconds.shift();
-      periodSeconds.push(newest);
-
-      downTime -= downTime > 0 ? newest : 0;
-      downTime += downTime < downTimeSet ? oldest : 0;
-    }
-    validateUrl(request, sender, sendResponse);
-  }
-);
+setInterval(calcDownTime, 1000);
 
 // report state
 
@@ -141,3 +107,9 @@ function getTimeData() {
 function getPeriodSeconds() {
   return periodSeconds;
 }
+
+// check tabs at startup
+updateState({});
+// TODO: need listener for window events?
+chrome.tabs.onActivated.addListener(updateState);
+chrome.tabs.onUpdated.addListener(updateState);
